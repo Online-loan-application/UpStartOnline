@@ -1,0 +1,57 @@
+/* Shared glass materials and ambient motion for the Upstart experience. */
+:root{--glass-light:color-mix(in oklch,var(--p-cream-50) 88%,transparent);--glass-line:color-mix(in oklch,var(--p-cream-50) 42%,transparent)}
+
+/* Splash: layered light, a glass halo, and gentle continuous movement. */
+.splash-inner{isolation:isolate}
+.splash-inner::before{content:"";position:absolute;z-index:-1;left:50%;top:38%;width:min(460px,82vw);aspect-ratio:1;border:1px solid color-mix(in oklch,var(--p-cream-50) 12%,transparent);border-radius:50%;background:color-mix(in oklch,var(--p-mint-300) 5%,transparent);backdrop-filter:blur(14px);transform:translate(-50%,-50%);animation:glass-halo 2.8s ease-in-out infinite}
+.splash::before{animation:splash-ring-one 8s linear infinite}
+.splash::after{animation:splash-ring-two 10s linear infinite}
+.splash-logo-mask{animation:logo-float 1.8s .55s ease-in-out infinite alternate}
+.splash-line span{box-shadow:0 0 18px color-mix(in oklch,var(--accent) 55%,transparent)}
+
+/* Transparent surfaces retain contrast while allowing the ambient artwork through. */
+.estimate-card{background:var(--glass-light);border:1px solid var(--glass-line);backdrop-filter:blur(22px) saturate(120%);box-shadow:0 30px 80px color-mix(in oklch,var(--p-olive-950) 28%,transparent),inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 70%,transparent)}
+.option-art{background:color-mix(in oklch,var(--p-mint-300) 5%,transparent);border-color:color-mix(in oklch,var(--p-mint-300) 24%,transparent);backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 8%,transparent),0 24px 60px color-mix(in oklch,var(--p-olive-950) 18%,transparent)}
+.approach-grid{padding:48px;border:1px solid color-mix(in oklch,var(--p-cream-50) 65%,transparent);border-radius:12px;background:color-mix(in oklch,var(--p-cream-50) 58%,transparent);backdrop-filter:blur(18px);box-shadow:0 24px 70px color-mix(in oklch,var(--p-teal-900) 7%,transparent)}
+.application-card{background:color-mix(in oklch,var(--p-cream-50) 88%,transparent);border:1px solid color-mix(in oklch,var(--p-cream-50) 68%,transparent);backdrop-filter:blur(22px) saturate(115%);box-shadow:0 24px 70px color-mix(in oklch,var(--p-olive-950) 13%,transparent),inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 80%,transparent)}
+.loan-summary{background:color-mix(in oklch,var(--p-olive-950) 90%,transparent);border:1px solid color-mix(in oklch,var(--p-cream-50) 12%,transparent);backdrop-filter:blur(18px);box-shadow:0 24px 60px color-mix(in oklch,var(--p-olive-950) 18%,transparent),inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 8%,transparent)}
+
+/* Ambient motion stays transform/opacity based for smooth rendering. */
+.hero-orbit{animation:orbit-spin 26s linear infinite}
+.hero-orbit::after{content:"";position:absolute;left:50%;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 22px color-mix(in oklch,var(--accent) 70%,transparent);opacity:.8}
+.option-art::before{animation:ring-breathe 6s ease-in-out infinite}
+.option-art::after{animation:ring-breathe 6s 1.2s ease-in-out infinite reverse}
+.application-hero::before{content:"";position:absolute;right:12%;top:26%;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 28px color-mix(in oklch,var(--accent) 65%,transparent);opacity:.7;animation:dot-drift 5s ease-in-out infinite alternate}
+.application-hero::after{animation:orbit-spin 32s linear infinite}
+.loan-summary::after{animation:ring-breathe 7s ease-in-out infinite}
+.progress-track span{position:relative;overflow:hidden}
+.progress-track span::after{content:"";position:absolute;inset:0;background:var(--accent);opacity:.55;transform:translateX(-100%);animation:progress-glint 2.8s ease-in-out infinite}
+
+/* A continuous, non-interactive brand display. Duplicate groups make the loop seamless. */
+.continuous-display{overflow:hidden;background:var(--surface-deep);color:var(--p-cream-100);border-top:1px solid color-mix(in oklch,var(--p-cream-50) 9%,transparent);border-bottom:1px solid color-mix(in oklch,var(--p-cream-50) 9%,transparent)}
+.continuous-track{display:flex;width:max-content;animation:continuous-flow 30s linear infinite;will-change:transform}
+.continuous-group{display:flex;align-items:center;flex-shrink:0;gap:34px;padding:18px 34px 18px 0;font-size:11px;font-weight:700;letter-spacing:.18em;line-height:1;text-transform:uppercase;white-space:nowrap}
+.continuous-group span{display:inline-flex;align-items:center;gap:34px}
+.continuous-group span::after{content:"";width:5px;height:5px;border:1px solid var(--accent);border-radius:50%;opacity:.8}
+.continuous-display:hover .continuous-track{animation-play-state:paused}
+
+/* A restrained glass sheen makes step and confirmation changes feel physical. */
+.form-step{transform-origin:center top}
+.confirmation-icon{box-shadow:0 0 0 10px color-mix(in oklch,var(--accent) 20%,transparent)}
+
+@keyframes glass-halo{0%,100%{transform:translate(-50%,-50%) scale(.96);opacity:.55}50%{transform:translate(-50%,-50%) scale(1.04);opacity:.9}}
+@keyframes logo-float{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+@keyframes splash-ring-one{from{transform:translate(-32%,28%) rotate(0)}to{transform:translate(-32%,28%) rotate(360deg)}}
+@keyframes splash-ring-two{from{transform:translate(36%,-32%) rotate(0)}to{transform:translate(36%,-32%) rotate(-360deg)}}
+@keyframes orbit-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes ring-breathe{0%,100%{transform:scale(.96);opacity:.45}50%{transform:scale(1.04);opacity:1}}
+@keyframes dot-drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-36px,24px,0)}}
+@keyframes progress-glint{0%,35%{transform:translateX(-100%)}75%,100%{transform:translateX(100%)}}
+@keyframes continuous-flow{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+@media(max-width:820px){.approach-grid{padding:32px}.continuous-group{gap:26px;padding-top:16px;padding-bottom:16px}.continuous-group span{gap:26px}}
+@media(max-width:560px){.approach-grid{padding:28px 22px}.application-card{backdrop-filter:blur(16px)}.splash-inner::before{width:86vw}}
+@media(prefers-reduced-motion:reduce){
+  .splash-inner::before,.splash::before,.splash::after,.splash-logo-mask,.hero-orbit,.option-art::before,.option-art::after,.application-hero::before,.application-hero::after,.loan-summary::after,.progress-track span::after,.continuous-track{animation:none!important}
+  .continuous-track{width:auto;transform:none!important}.continuous-group{flex-wrap:wrap;justify-content:center;padding-inline:20px;white-space:normal;line-height:1.6}.continuous-group[aria-hidden=true]{display:none}
+}
