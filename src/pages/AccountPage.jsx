@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { readApplicationDraft, submitApplicationDraft } from '../applicationData.js';
 import { isSupabaseConfigured, supabase } from '../supabase.js';
+import brandLogo from '../brandAssets.js';
 
 export default function AccountPage() {
   const application = readApplicationDraft();
@@ -80,7 +81,7 @@ export default function AccountPage() {
   return (
     <>
       <a className="skip-link" href="#main">Skip to account setup</a>
-      <header className="site-header"><div className="container nav-wrap"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a><a className="button button-primary nav-cta" href="./index.html">Home</a></div></header>
+      <header className="site-header"><div className="container nav-wrap"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><a className="button button-primary nav-cta" href="./index.html">Home</a></div></header>
       <main id="main">
         <section className="application-hero"><div className="container hero-grid"><div><p className="eyebrow">Your Upstart account</p><h1 className="display">{mode === 'create' ? 'Keep your plans close.' : 'Welcome back.'}</h1></div><div className="hero-note"><strong>Hi {name}</strong><p>{mode === 'create' ? 'Create a secure account to submit your application.' : 'Sign in to submit your application and view your account.'}</p></div></div></section>
         <section className="application-area"><div className="container account-layout"><div className="application-card account-card">
@@ -97,7 +98,7 @@ export default function AccountPage() {
           <a className="account-back" href="./application.html">Return to application</a>
         </div></div></section>
       </main>
-      <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Your application is submitted securely to Upstart after account verification.</p></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Your application is submitted securely to Upstart after account verification.</p></div></footer>
     </>
   );
 }

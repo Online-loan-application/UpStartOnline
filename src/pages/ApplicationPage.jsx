@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import brandLogo from '../brandAssets.js';
 
 export default function ApplicationPage() {
   useEffect(() => {
@@ -12,7 +13,7 @@ export default function ApplicationPage() {
   <a className="skip-link" href="#main">Skip to application</a>
   <header className="site-header" id="top">
     <div className="container nav-wrap">
-      <a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a>
+      <a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a>
       <nav className="nav-links" id="primary-nav" aria-label="Primary navigation"><a href="./index.html#how">How it works</a><a href="./index.html#options">Loan options</a><a href="./index.html#approach">Our approach</a><a href="./application.html" aria-current="page">Application</a></nav>
       <a className="button button-primary nav-cta" href="./index.html#estimate">Estimator</a>
       <button className="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-controls="primary-nav" aria-expanded="false"><svg className="menu-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 8h16M4 16h16"></path></svg><svg className="menu-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
@@ -87,7 +88,7 @@ export default function ApplicationPage() {
     </section>
   </main>
 
-  <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica. Estimates are for planning and do not represent loan offers or approvals.</p><nav className="footer-links" aria-label="Footer navigation"><a href="./index.html">Home</a><a href="./index.html#estimate">Estimator</a></nav></div></footer>
+  <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica. Estimates are for planning and do not represent loan offers or approvals.</p><nav className="footer-links" aria-label="Footer navigation"><a href="./index.html">Home</a><a href="./index.html#estimate">Estimator</a></nav></div></footer>
   
   
 

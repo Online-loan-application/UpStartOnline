@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import brandLogo from '../brandAssets.js';
 
 export default function HomePage() {
   useEffect(() => {
@@ -13,7 +14,7 @@ export default function HomePage() {
 
   <div className="splash" id="splash" role="dialog" aria-modal="true" aria-label="Upstart introduction">
     <div className="splash-inner" aria-hidden="true">
-      <div className="splash-logo-mask"><img className="splash-logo" src="./assets/upstart-logo-blended.png" alt="" /></div>
+      <div className="splash-logo-mask"><img className="splash-logo" src={brandLogo} alt="" /></div>
       <div className="splash-copy-mask"><p className="splash-tagline">Fast, fair financing to lift you higher.</p></div>
       <p className="splash-country">Jamaica</p>
       <div className="splash-line"><span></span></div>
@@ -24,7 +25,7 @@ export default function HomePage() {
   <header className="site-header" id="top">
     <div className="container nav-wrap">
       <a className="brand" href="#top" aria-label="Upstart Jamaica home">
-        <img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" />
+        <img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" />
       </a>
       <nav className="nav-links" id="primary-nav" aria-label="Primary navigation">
         <a href="#how">How it works</a>
@@ -180,7 +181,7 @@ export default function HomePage() {
     <div className="container">
       <div className="footer-top">
         <div className="footer-brand">
-          <a className="brand" href="#top" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a>
+          <a className="brand" href="#top" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a>
           <p>Fast, fair financing to lift you higher. Thoughtful tools for Jamaica and whatever comes next.</p>
         </div>
         <div className="footer-column"><h3>Explore</h3><ul className="footer-links"><li><a href="#how">How it works</a></li><li><a href="#options">Loan options</a></li><li><a href="#approach">Our approach</a></li></ul></div>

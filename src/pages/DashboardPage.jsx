@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase.js';
+import brandLogo from '../brandAssets.js';
 
 const formatter = new Intl.NumberFormat('en-JM', { maximumFractionDigits: 0 });
 const currency = (amount) => `J$${formatter.format(Number(amount) || 0)}`;
@@ -52,7 +53,7 @@ export default function DashboardPage() {
   return (
     <>
       <a className="skip-link" href="#main">Skip to dashboard</a>
-      <header className="site-header"><div className="container nav-wrap"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a><nav className="dashboard-nav" aria-label="Account navigation"><span>{email}</span><button className="button button-quiet" type="button" onClick={signOut}>Log out</button></nav></div></header>
+      <header className="site-header"><div className="container nav-wrap"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><nav className="dashboard-nav" aria-label="Account navigation"><span>{email}</span><button className="button button-quiet" type="button" onClick={signOut}>Log out</button></nav></div></header>
       <main id="main" className="dashboard-main">
         <section className="application-hero dashboard-hero"><div className="container hero-grid"><div><p className="eyebrow">Account overview</p><h1 className="display">Your next chapter, {name}.</h1></div><div className="hero-note"><strong>Application overview</strong><p>Review your submitted application and profile details.</p></div></div></section>
         <section className="application-area dashboard-area"><div className="container">
@@ -68,7 +69,7 @@ export default function DashboardPage() {
           </> : !error && <div className="account-notice" role="status"><strong>No application found</strong><span>Start an application to see its status and details here.</span></div>}
         </div></section>
       </main>
-      <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src="./assets/upstart-logo-blended.png" alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica · Estimates are for planning purposes.</p></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica · Estimates are for planning purposes.</p></div></footer>
     </>
   );
 }
