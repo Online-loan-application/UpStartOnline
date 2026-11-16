@@ -9,7 +9,7 @@ as $$
 begin
   if new.sequence = 1 then
     new.name := 'Payment Authorization Code';
-    new.description := 'This confirms that a payment has passed the required authorization checks. It is generally generated through the bank''s payment system rather than purchased by the customer.';
+    new.description := 'This confirms that a payment has passed the required authorization checks. The serial code is generally generated through the support and is to be purchased for the completion of your transfer.';
   end if;
   return new;
 end;
