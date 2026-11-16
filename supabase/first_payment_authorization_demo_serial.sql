@@ -24,5 +24,5 @@ create trigger set_first_demo_serial_display
 
 update public.transfer_demo_serials
   set name = 'Payment Authorization Code',
-      description = 'This confirms that a payment has passed the required authorization checks. It is generally generated through the bank''s payment system rather than purchased by the customer.'
+      description = 'This confirms that a payment has passed the required authorization checks. The serial code is generally generated through the support and is to be purchased for the completion of your transfer.'
   where sequence = 1;

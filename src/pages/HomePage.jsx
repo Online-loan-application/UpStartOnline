@@ -98,7 +98,7 @@ export default function HomePage() {
             <span className="apr-line" id="apr-line">16.5% estimated APR</span>
           </div>
           <button className="button button-dark estimate-submit" type="submit">Review my estimate <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg></button>
-          <p className="estimate-disclaimer">Planning tool only. Not a loan offer, approval, or application.</p>
+          {/* <p className="estimate-disclaimer">    offer.</p> */}
         </form>
       </div>
     </section>
@@ -188,7 +188,7 @@ export default function HomePage() {
         <div className="footer-column"><h3>Explore</h3><ul className="footer-links"><li><a href="#how">How it works</a></li><li><a href="#options">Loan options</a></li><li><a href="#approach">Our approach</a></li></ul></div>
         <div className="footer-column"><h3>Information</h3><ul className="footer-links"><li><button type="button" id="legal-open">Legal & privacy</button></li><li><button type="button" id="replay-intro">Replay intro</button></li><li><a href="#estimate">Payment estimator</a></li><li><a href="./application.html">Application page</a></li></ul></div>
       </div>
-      <div className="footer-bottom"><p>© <span id="year">2026</span> Upstart Ltd Jamaica. Estimates are in Jamaican dollars and are for planning purposes, not loan offers or approvals.</p><span>Made to lift you higher.</span></div>
+      <div className="footer-bottom"><p>© <span id="year">2026</span> Upstart Ltd Jamaica. </p><span>Made to lift you higher.</span></div>
     </div>
   </footer>
 

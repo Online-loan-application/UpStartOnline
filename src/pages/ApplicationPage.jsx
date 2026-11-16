@@ -65,7 +65,7 @@ export default function ApplicationPage() {
                 <div className="field"><label htmlFor="pay-date">Preferred first pay date <span className="required">*</span></label><input id="pay-date" name="payDate" type="date" required /><span className="field-hint">Choose a date that fits your monthly budget</span></div>
               </div>
               <div className="form-actions"><button className="button button-quiet" type="button" data-back="1">Back</button><button className="button button-dark" type="button" data-next="3">Review application <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg></button></div>
-              <p className="form-privacy">No credit check is performed.</p>
+              {/* <p className="form-privacy">Credit check is performed.</p> */}
             </section>
 
             <section className="form-step" data-step="3" aria-labelledby="step-3-title" hidden>
@@ -88,7 +88,7 @@ export default function ApplicationPage() {
     </section>
   </main>
 
-  <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica. Estimates are for planning and do not represent loan offers or approvals.</p><nav className="footer-links" aria-label="Footer navigation"><a href="./index.html">Home</a><a href="./index.html#estimate">Estimator</a></nav></div></footer>
+  <footer className="site-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Upstart Ltd Jamaica.</p><nav className="footer-links" aria-label="Footer navigation"><a href="./index.html">Home</a><a href="./index.html#estimate">Estimator</a></nav></div></footer>
   
   
 

@@ -7,7 +7,7 @@ import Toast from '../components/Toast.jsx';
 const transferOptions = {
   'local-bank': {
     name: 'Local bank transfer',
-    description: 'Transfers to Jamaican bank accounts are not available yet.',
+    // description: 'Transfers are cost free',
     icon: '⇄',
     fields: [
       { name: 'recipientName', label: 'Account holder full name', type: 'text', autoComplete: 'name' },
@@ -496,7 +496,7 @@ export default function TransferPage() {
                       </div>
                     )}
                     {formError && <p className="account-message" role="alert">{formError}</p>}
-                    <p className="transfer-safety-note">Simulation only: recipient details are saved to your account for reuse only when you choose “Save recipient details.” Preview details are not stored with the transfer. No payment is submitted and no real funds move.</p>
+                    <p className="transfer-safety-note">Recipient details are saved to your account for reuse only when you choose “Save recipient details.” Preview details are not stored with the transfer.</p>
                     <button className="button button-dark" type="submit" disabled={previewSaving}>{previewSaving ? 'Preparing preview…' : 'Preview transfer'}</button>
                   </form>
                 </article>
