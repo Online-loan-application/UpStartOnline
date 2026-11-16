@@ -373,7 +373,7 @@ export default function TransferPage() {
                   {!firstSerialState.ready && (
                     <p className="account-notice" role={firstSerialState.error ? 'alert' : 'status'}>
                       <strong>{firstSerialState.error ? 'Setup unavailable' : 'Setup incomplete'}</strong>
-                      <span>{firstSerialState.error || 'An administrator must generate all four serial codes and save the first step amount before you can continue.'}</span>
+                      <span>{firstSerialState.error || 'An administrator must approve the transfer before you can continue.'}</span>
                     </p>
                   )}
                   <div className="transfer-preview-actions">

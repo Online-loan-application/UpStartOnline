@@ -305,19 +305,19 @@ export default function AdminApplicantPage() {
 
   async function resetDemoSerials() {
     if (!supabase || !application || serials.length === 0) return;
-    if (!window.confirm('Reset all four serial codes and set every amount to J$0? Users will not be able to proceed until new codes are generated and amounts are set again.')) {
+    if (!window.confirm('Reset all four serial codes and set every amount to J$0? Processing transfers will return to preview, releasing the reserved balance. Users must select a recipient again and wait until new codes and amounts are configured.')) {
       return;
     }
 
     setSerialSaving('reset');
     setSerialMessage('');
     try {
-      const { error } = await supabase.rpc('admin_reset_transfer_demo_serials', {
+      const { error } = await supabase.rpc('admin_reset_transfer_demo_serials_and_restart', {
         p_application_id: application.id,
       });
       if (error) {
         setSerialMessage(error.code === '42883' || error.code === 'PGRST202'
-          ? 'Run the serial setup migration in Supabase to enable reset.'
+          ? 'Run supabase/reset_transfer_on_serial_reset.sql in the Supabase SQL Editor to enable transfer restart on reset.'
           : `Serials could not be reset. ${error.message}`);
         return;
       }
@@ -332,7 +332,7 @@ export default function AdminApplicantPage() {
       })));
       setAmountSettings((current) => current.map((setting) => ({ ...setting, amount: '0' })));
       setAmountInput('0');
-      setToast('All serial codes were reset and all four amounts are now J$0.');
+      setToast('All serial codes were reset, all amounts are J$0, and processing transfers are available to restart.');
     } catch (error) {
       setSerialMessage(`Serials could not be reset. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {

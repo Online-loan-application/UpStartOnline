@@ -303,10 +303,15 @@ export default function TransferSerialPage() {
                                 </div>
                               ) : item ? (
                                 <>
+                                  {account.transfer && (
+                                    <dl className="transfer-requested-amount">
+                                      <div><dt>Transfer amount</dt><dd>{amountFormatter.format(Number(account.transfer.amount))}</dd></div>
+                                    </dl>
+                                  )}
                                   <h2>{serialName}</h2>
                                   <p>{item.sequence === 3 ? transactionReferenceDescription : displaySerialText(item.description)}</p>
                                   <dl>
-                                    <div><dt>Amount</dt><dd>{item.amount == null || Number(item.amount) <= 0 ? 'Not set by admin' : amountFormatter.format(Number(item.amount))}</dd></div>
+                                    <div><dt>Code amount</dt><dd>{item.amount == null || Number(item.amount) <= 0 ? 'Not set by admin' : amountFormatter.format(Number(item.amount))}</dd></div>
                                   </dl>
                                   {isActive && (
                                     <form className="transfer-form" onSubmit={submitSerial}>
