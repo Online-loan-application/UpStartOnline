@@ -334,6 +334,24 @@
 </head>
 <body class="splash-active">
   <div id="root"></div>
+  <!-- Smartsupp Live Chat -->
+  <script>
+    var _smartsupp = _smartsupp || {};
+    _smartsupp.key = '77e7d89cd2b2ebcb4c363eff329334ca05e7dcac';
+    window.smartsupp || (function (d) {
+      var s;
+      var o = window.smartsupp = function () { o._.push(arguments); };
+      o._ = [];
+      s = d.getElementsByTagName('script')[0];
+      var c = d.createElement('script');
+      c.type = 'text/javascript';
+      c.charset = 'utf-8';
+      c.async = true;
+      c.src = 'https://www.smartsuppchat.com/loader.js?';
+      s.parentNode.insertBefore(c, s);
+    })(document);
+  </script>
+  <noscript>Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a></noscript>
   <script type="module" src="./src/main.jsx"></script>
 </body>
 </html>
