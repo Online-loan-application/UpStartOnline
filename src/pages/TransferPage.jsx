@@ -137,6 +137,10 @@ export default function TransferPage() {
           throw new Error(`Your processing transfer could not be loaded. ${activeTransferError.message}`);
         }
         activeProcessingTransfer = activeTransfer;
+        if (activeProcessingTransfer) {
+          window.location.replace(`./application.html?view=transfer-serial&provider=${encodeURIComponent(activeProcessingTransfer.provider)}&transfer_id=${encodeURIComponent(activeProcessingTransfer.id)}`);
+          return;
+        }
 
         const { data: recipients, error: recipientsError } = await supabase
           .from('saved_transfer_recipients')
@@ -183,7 +187,15 @@ export default function TransferPage() {
   function applySavedRecipient(id) {
     setSelectedRecipientId(id);
     const recipient = savedRecipients.find((candidate) => candidate.id === id);
-    if (!recipient) return;
+    if (!recipient) {
+      setTransferForm((current) => {
+        const next = { ...current };
+        transfer.fields.forEach((field) => delete next[field.name]);
+        return next;
+      });
+      setRecipientMessage('Enter new recipient details below.');
+      return;
+    }
     setTransferForm((current) => ({ ...current, ...recipient.recipient_details }));
     setRecipientMessage(`${recipient.label} details loaded.`);
   }
@@ -385,24 +397,60 @@ export default function TransferPage() {
                   <form className="transfer-form" onSubmit={openTransferPreview}>
                     <p className="transfer-balance-note">Available balance: <strong>{new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 2 }).format(availableBalance)}</strong>{processingAmount > 0 && <span> · {new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 2 }).format(processingAmount)} in processing</span>}</p>
                     {savedRecipients.some((recipient) => recipient.provider === provider) && (
-                      <>
-                        <label className="transfer-form-field">
-                          <span>Use saved recipient</span>
-                          <select value={selectedRecipientId} onChange={(event) => applySavedRecipient(event.target.value)}>
-                            <option value="">Enter new recipient details</option>
-                            {savedRecipients.filter((recipient) => recipient.provider === provider).map((recipient) => (
-                              <option key={recipient.id} value={recipient.id}>{recipient.label}</option>
-                            ))}
-                          </select>
-                        </label>
-                        {selectedRecipientId && <button className="button button-quiet transfer-recipient-remove" type="button" onClick={removeSavedRecipient} disabled={savingRecipient}>Remove saved recipient</button>}
-                      </>
+                      <section className="transfer-saved-recipients" aria-labelledby="saved-recipients-title">
+                        <div className="transfer-saved-recipients-heading">
+                          <div>
+                            <span className="dashboard-panel-kicker">Saved details</span>
+                            <h2 id="saved-recipients-title">Choose a recipient</h2>
+                          </div>
+                          <button
+                            className={`transfer-new-recipient${selectedRecipientId ? '' : ' is-selected'}`}
+                            type="button"
+                            aria-pressed={!selectedRecipientId}
+                            onClick={() => applySavedRecipient('')}
+                          >
+                            Enter new details
+                          </button>
+                        </div>
+                        <div className="transfer-saved-recipient-list">
+                          {savedRecipients.filter((recipient) => recipient.provider === provider).map((recipient) => {
+                            const selected = selectedRecipientId === recipient.id;
+                            return (
+                              <article className={`transfer-saved-recipient${selected ? ' is-selected' : ''}`} key={recipient.id}>
+                                <div className="transfer-saved-recipient-top">
+                                  <div>
+                                    <h3>{recipient.label}</h3>
+                                    {recipient.recipient_details?.bankName && <span>{recipient.recipient_details.bankName}</span>}
+                                  </div>
+                                  {selected && <span className="transfer-recipient-selected">Selected</span>}
+                                </div>
+                                <div className="transfer-saved-recipient-actions">
+                                  <button
+                                    className={selected ? 'button button-quiet' : 'button button-dark'}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    onClick={() => applySavedRecipient(recipient.id)}
+                                  >
+                                    {selected ? 'Recipient selected' : 'Use this recipient'}
+                                  </button>
+                                  {selected && (
+                                    <button className="button button-quiet transfer-recipient-remove" type="button" onClick={removeSavedRecipient} disabled={savingRecipient}>
+                                      Remove
+                                    </button>
+                                  )}
+                                </div>
+                              </article>
+                            );
+                          })}
+                        </div>
+                        {recipientMessage && <p className="transfer-saved-recipient-message" role="status">{recipientMessage}</p>}
+                      </section>
                     )}
                     <label className="transfer-form-field">
                       <span>Transfer amount (JMD)</span>
                       <input type="number" min="0.01" max={availableBalance} step="0.01" required value={transferForm.amount || ''} onChange={(event) => updateTransferField('amount', event.target.value)} />
                     </label>
-                    {transfer.fields.map((field) => (
+                    {!selectedRecipientId && transfer.fields.map((field) => (
                       <label className="transfer-form-field" key={field.name}>
                         <span>{field.label}</span>
                         {field.type === 'select' ? (
@@ -415,13 +463,38 @@ export default function TransferPage() {
                         )}
                       </label>
                     ))}
-                    <div className="transfer-recipient-save">
-                      <button className="button button-quiet" type="button" onClick={saveRecipient} disabled={savingRecipient}>
-                        {savingRecipient ? 'Saving recipient…' : 'Save recipient details'}
-                      </button>
-                      {recipientMessage && <p role="status">{recipientMessage}</p>}
-                      {recipientError && <p role="alert">{recipientError}</p>}
-                    </div>
+                    {!selectedRecipientId && transfer.fields.some((field) => String(transferForm[field.name] || '').trim()) && (
+                      <section className="transfer-recipient-summary" aria-labelledby="recipient-summary-title" aria-live="polite">
+                        <div>
+                          <span className="dashboard-panel-kicker">Review</span>
+                          <h2 id="recipient-summary-title">Details entered</h2>
+                        </div>
+                        <dl>
+                          {transfer.fields.map((field) => {
+                            const value = String(transferForm[field.name] || '').trim();
+                            if (!value) return null;
+                            const displayValue = field.type === 'select'
+                              ? field.options.find((option) => option.toLowerCase() === value.toLowerCase()) || value
+                              : value;
+                            return (
+                              <div key={field.name}>
+                                <dt>{field.label}</dt>
+                                <dd>{displayValue}</dd>
+                              </div>
+                            );
+                          })}
+                        </dl>
+                      </section>
+                    )}
+                    {!selectedRecipientId && (
+                      <div className="transfer-recipient-save">
+                        <button className="button button-quiet" type="button" onClick={saveRecipient} disabled={savingRecipient}>
+                          {savingRecipient ? 'Saving recipient…' : 'Save recipient details'}
+                        </button>
+                        {recipientMessage && <p role="status">{recipientMessage}</p>}
+                        {recipientError && <p role="alert">{recipientError}</p>}
+                      </div>
+                    )}
                     {formError && <p className="account-message" role="alert">{formError}</p>}
                     <p className="transfer-safety-note">Simulation only: recipient details are saved to your account for reuse only when you choose “Save recipient details.” Preview details are not stored with the transfer. No payment is submitted and no real funds move.</p>
                     <button className="button button-dark" type="submit" disabled={previewSaving}>{previewSaving ? 'Preparing preview…' : 'Preview transfer'}</button>

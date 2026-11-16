@@ -37,7 +37,7 @@
 .dashboard-notification-trigger:hover,.dashboard-notification-trigger[aria-expanded=true]{border-color:color-mix(in oklch,var(--accent) 70%,transparent);background:color-mix(in oklch,var(--p-cream-50) 8%,transparent)}
 .dashboard-notification-trigger svg{width:19px;height:19px}
 .dashboard-notification-dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border:1px solid var(--p-teal-950);border-radius:50%;background:var(--accent)}
-.dashboard-notification-dropdown{position:absolute;z-index:30;top:calc(100% + 12px);right:-10px;width:min(380px,calc(100vw - 32px));max-height:min(72vh,620px);padding:16px;overflow:hidden;border:1px solid color-mix(in oklch,var(--p-cream-50) 74%,transparent);border-radius:16px;background:color-mix(in oklch,var(--p-cream-50) 74%,transparent);backdrop-filter:blur(24px) saturate(150%);box-shadow:0 24px 64px color-mix(in oklch,var(--p-olive-950) 24%,transparent),inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 90%,transparent);color:var(--text-on-light);animation:notification-glass-in .28s cubic-bezier(.2,.8,.2,1) both}
+.dashboard-notification-dropdown{position:absolute;z-index:30;top:calc(100% + 12px);right:-10px;width:min(380px,calc(100vw - 32px));max-height:min(72vh,620px);padding:16px;overflow:hidden;border:1px solid color-mix(in oklch,var(--p-cream-50) 62%,transparent);border-radius:16px;background:color-mix(in oklch,var(--p-cream-50) 62%,transparent);backdrop-filter:blur(24px) saturate(150%);box-shadow:0 24px 64px color-mix(in oklch,var(--p-olive-950) 24%,transparent),inset 0 1px 0 color-mix(in oklch,var(--p-cream-50) 80%,transparent);color:var(--text-on-light);animation:notification-glass-in .28s cubic-bezier(.2,.8,.2,1) both}
 .dashboard-notification-dropdown-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid color-mix(in oklch,var(--p-teal-900) 12%,transparent)}
 .dashboard-notification-dropdown-heading strong{font-size:13px}
 .dashboard-notification-dropdown-heading span,.dashboard-notification-dropdown time{color:var(--text-muted);font-size:11px}
@@ -186,6 +186,31 @@
 .transfer-recipient-save [role=status]{color:var(--p-teal-900)}
 .transfer-recipient-save [role=alert]{color:#8f3329}
 .transfer-recipient-remove{justify-self:start;min-height:34px;padding:8px 11px;font-size:10px}
+.transfer-saved-recipients{display:grid;width:100%;gap:12px;padding:16px;border:1px solid color-mix(in oklch,var(--p-teal-900) 12%,transparent);border-radius:14px;background:color-mix(in oklch,var(--p-cream-50) 48%,transparent)}
+.transfer-saved-recipients-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.transfer-saved-recipients-heading h2{margin-top:3px;color:var(--text-on-light);font-size:16px}
+.transfer-new-recipient{min-height:36px;padding:8px 12px;border:1px solid color-mix(in oklch,var(--p-teal-900) 18%,transparent);border-radius:9px;background:transparent;color:var(--p-teal-900);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.transfer-new-recipient.is-selected{background:var(--p-teal-950);color:var(--p-cream-50)}
+.transfer-saved-recipient-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.transfer-saved-recipient{display:grid;align-content:start;gap:12px;min-width:0;padding:14px;border:1px solid color-mix(in oklch,var(--p-teal-900) 12%,transparent);border-radius:12px;background:color-mix(in oklch,var(--p-cream-50) 84%,transparent);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.transfer-saved-recipient.is-selected{border-color:color-mix(in oklch,var(--p-teal-900) 52%,transparent);box-shadow:0 8px 22px color-mix(in oklch,var(--p-teal-900) 9%,transparent)}
+.transfer-saved-recipient-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.transfer-saved-recipient-top h3{color:var(--text-on-light);font-size:14px;overflow-wrap:anywhere}
+.transfer-saved-recipient-top>div>span{display:block;margin-top:3px;color:var(--text-muted);font-size:10px}
+.transfer-recipient-selected{flex:none;padding:4px 8px;border-radius:999px;background:color-mix(in oklch,var(--p-mint-300) 30%,var(--surface-light));color:var(--p-teal-900);font-size:9px;font-weight:800}
+.transfer-saved-recipient dl{display:grid;gap:8px;padding-top:10px;border-top:1px solid color-mix(in oklch,var(--p-teal-900) 10%,transparent)}
+.transfer-saved-recipient dl>div{display:grid;gap:2px;min-width:0}
+.transfer-saved-recipient dt{color:var(--text-muted);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.transfer-saved-recipient dd{color:var(--text-on-light);font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.transfer-saved-recipient-actions{display:flex;flex-wrap:wrap;gap:8px}
+.transfer-saved-recipient-actions .button{min-height:36px;margin:0;padding:8px 11px;font-size:10px}
+.transfer-saved-recipient-message{color:var(--p-teal-900);font-size:11px;line-height:1.45}
+.transfer-recipient-summary{display:grid;width:100%;gap:10px;padding:14px 16px;border:1px solid color-mix(in oklch,var(--p-teal-900) 14%,transparent);border-radius:12px;background:color-mix(in oklch,var(--p-mint-300) 16%,var(--surface-light))}
+.transfer-recipient-summary h2{margin-top:3px;color:var(--text-on-light);font-size:14px}
+.transfer-recipient-summary dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px 16px}
+.transfer-recipient-summary dl>div{display:grid;gap:3px;min-width:0}
+.transfer-recipient-summary dt{color:var(--text-muted);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.transfer-recipient-summary dd{color:var(--text-on-light);font-size:12px;font-weight:600;overflow-wrap:anywhere}
 .transfer-form .button{justify-self:start}
 .transfer-preview-card{display:grid;justify-items:start;gap:16px;padding:clamp(22px,4vw,36px);border:1px solid color-mix(in oklch,var(--p-cream-50) 70%,transparent);border-radius:16px;background:color-mix(in oklch,var(--p-cream-50) 76%,transparent);backdrop-filter:blur(20px);box-shadow:0 20px 52px color-mix(in oklch,var(--p-olive-950) 10%,transparent);animation:dashboard-enter .4s ease-out both}
 .transfer-preview-card h1{font-family:var(--font-display);font-size:clamp(30px,5vw,42px);font-weight:500;line-height:1.05}

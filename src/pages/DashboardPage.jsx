@@ -112,15 +112,12 @@ export default function DashboardPage() {
   const grossBalance = application?.status === 'approved' ? amount : 0;
   const balance = Math.max(0, grossBalance - dashboard.processingAmount);
   const activeTransfer = dashboard.processingTransfers[0];
-  const transferHref = (provider) => {
-    const processingTransfer = dashboard.processingTransfers.find((transfer) => transfer.provider === provider);
-    return processingTransfer
-      ? `./application.html?view=transfer-serial&provider=${encodeURIComponent(processingTransfer.provider)}&transfer_id=${encodeURIComponent(processingTransfer.id)}`
-      : `./application.html?view=transfer&provider=${encodeURIComponent(provider)}`;
-  };
   const activeTransferHref = activeTransfer
     ? `./application.html?view=transfer-serial&provider=${encodeURIComponent(activeTransfer.provider)}&transfer_id=${encodeURIComponent(activeTransfer.id)}`
     : './application.html?view=transfer';
+  const transferHref = (provider) => activeTransfer
+    ? activeTransferHref
+    : `./application.html?view=transfer&provider=${encodeURIComponent(provider)}`;
   const term = Number(application?.term) || 36;
   const monthlyRate = 0.165 / 12;
   const payment = amount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -term));
@@ -230,7 +227,7 @@ export default function DashboardPage() {
               </section>
               <section id="transfers" className="dashboard-transfers" aria-labelledby="transfers-title">
                 <div className="dashboard-section-heading"><div><span className="dashboard-panel-kicker">Move money</span><h2 id="transfers-title">Transfer options</h2></div></div>
-                <p className="dashboard-transfer-note">Transfers are not available yet. These options are previews only; no money can be sent from this dashboard.</p>
+                <p className="dashboard-transfer-note">Select an option to make your transfer.</p>
                 <div className="dashboard-transfer-grid">
                   <a className="dashboard-transfer-option" href={transferHref('local-bank')}>
                     <span className="dashboard-transfer-icon" aria-hidden="true">⇄</span>
