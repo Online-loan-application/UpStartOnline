@@ -369,7 +369,7 @@ export default function TransferPage() {
                     <div><dt>Available balance</dt><dd>{new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 2 }).format(availableBalance)}</dd></div>
                     <div><dt>Balance after preview</dt><dd>{new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 2 }).format(availableBalance - preview.amount)}</dd></div>
                   </dl>
-                  <p className="transfer-safety-note">Preview only. This transfer has not been submitted and no money has moved. Transfers are not enabled for this account.</p>
+                  <p className="transfer-safety-note">This transfer will be submitted as processing.</p>
                   {!firstSerialState.ready && (
                     <p className="account-notice" role={firstSerialState.error ? 'alert' : 'status'}>
                       <strong>{firstSerialState.error ? 'Setup unavailable' : 'Setup incomplete'}</strong>
@@ -506,7 +506,7 @@ export default function TransferPage() {
                 <div className="dashboard-page-heading">
                   <div><p className="dashboard-panel-kicker">Move money</p><h1>Transfer</h1><p>Choose a transfer destination to review its details.</p></div>
                 </div>
-                <p className="dashboard-transfer-note">Transfers are not available yet. These options are informational previews; no money can be sent from this dashboard.</p>
+                {/* <p className="dashboard-transfer-note">Transfers are not available yet. These options are informational previews.</p> */}
                 <div className="dashboard-transfer-grid transfer-page-options">
                   {Object.entries(transferOptions).map(([key, option]) => (
                     <a className="dashboard-transfer-option" href={`./application.html?view=transfer&provider=${key}`} key={key}>

@@ -309,6 +309,10 @@
 .admin-status-form>.button:disabled{opacity:.65;cursor:wait}
 .admin-decision-message{margin-top:12px;color:var(--p-teal-900);font-size:12px}
 .admin-decision-message[role=alert]{color:#8f3329}
+.admin-delete-application{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:22px;padding-top:16px;border-top:1px solid color-mix(in oklch,#8f3329 20%,transparent)}
+.admin-delete-application>p{margin:0;color:var(--text-muted);font-size:11px;line-height:1.45}
+.admin-delete-application>.button{flex:none;border-color:color-mix(in oklch,#8f3329 45%,transparent);color:#8f3329}
+.admin-delete-application>.button:hover:not(:disabled){background:color-mix(in oklch,#8f3329 8%,transparent)}
 .admin-detail-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
 .admin-detail-card dt{margin-bottom:3px;color:var(--text-muted);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
 .admin-detail-card dd{font-size:12px;font-weight:600;overflow-wrap:anywhere}
@@ -382,6 +386,7 @@
 @media(max-width:820px){.dashboard-transfer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:360px){.dashboard-transfer-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:560px){.admin-detail-page{width:calc(100% - 32px);padding-top:22px}.admin-detail-heading{align-items:flex-start;flex-wrap:wrap;gap:12px}.admin-detail-heading>.admin-applicant-status{margin-left:66px}.admin-detail-grid{grid-template-columns:minmax(0,1fr);gap:10px}.admin-detail-card{padding:16px}.admin-decision-card,.admin-detail-meta,.admin-demo-serials{grid-column:auto}.admin-demo-serial-list{grid-template-columns:minmax(0,1fr)}.admin-demo-amount-setting{align-items:stretch;flex-direction:column}.admin-demo-amount-setting .button{align-self:flex-start}.admin-status-form{align-items:stretch;flex-direction:column}.admin-status-form>.button{align-self:flex-start}.admin-detail-meta dl{grid-template-columns:minmax(0,1fr)}.transfer-demo-step dl{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){.admin-delete-application{align-items:stretch;flex-direction:column}.admin-delete-application>.button{align-self:flex-start}}
 @media(prefers-reduced-motion:reduce){
   .splash-inner::before,.splash::before,.splash::after,.splash-logo-mask,.hero-orbit,.option-art::before,.option-art::after,.application-hero::before,.application-hero::after,.loan-summary::after,.progress-track span::after,.continuous-track,.dashboard-sidebar,.dashboard-sidebar-nav a,.admin-summary-card,.admin-applicant-card,.dashboard-balance-card,.dashboard-header .dashboard-notification-menu,.dashboard-overview>.dashboard-page-heading,.dashboard-overview>.dashboard-section-heading,.dashboard-overview>.dashboard-transfers,.dashboard-overview>.dashboard-grid .dashboard-stat,.dashboard-overview>.dashboard-details,.dashboard-transfer-option,.profile-card,.dashboard-notification-dropdown,.dashboard-notification-list li,.transfer-detail-card,.transfer-preview-card,.transfer-serial-card,.transfer-demo-timer,.transfer-demo-timer strong,.app-toast{animation:none!important}
   .continuous-track{width:auto;transform:none!important}.continuous-group{flex-wrap:wrap;justify-content:center;padding-inline:20px;white-space:normal;line-height:1.6}.continuous-group[aria-hidden=true]{display:none}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../supabase.js';
 import { signOutWithActivity } from '../accountActivity.js';
 import brandLogo from '../brandAssets.js';
+import Toast from '../components/Toast.jsx';
 
 const currency = new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 0 });
 const date = new Intl.DateTimeFormat('en-JM', { dateStyle: 'long' });
@@ -41,6 +42,9 @@ export default function AdminApplicantPage() {
   const [serials, setSerials] = useState([]);
   const [serialSaving, setSerialSaving] = useState('');
   const [serialMessage, setSerialMessage] = useState('');
+  const [toast, setToast] = useState('');
+  const [deletingApplication, setDeletingApplication] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const applicationId = new URLSearchParams(window.location.search).get('id') || '';
 
   useEffect(() => {
@@ -135,6 +139,31 @@ export default function AdminApplicantPage() {
     }
   }
 
+  async function deleteApplication() {
+    if (!supabase || !detail.application || deletingApplication) return;
+    const confirmed = window.confirm(
+      'Delete this loan application and its linked transfer previews and serial checkpoints? The applicant’s login account and account activity will remain. This action cannot be undone.',
+    );
+    if (!confirmed) return;
+
+    setDeletingApplication(true);
+    setDeleteError('');
+    try {
+      const { error } = await supabase.rpc('admin_delete_loan_application', {
+        p_application_id: detail.application.id,
+      });
+      if (error) {
+        throw new Error(error.code === '42883' || error.code === 'PGRST202'
+          ? 'Run supabase/admin_delete_loan_application.sql in the Supabase SQL Editor to enable application deletion.'
+          : error.message);
+      }
+      window.location.replace('./application.html?view=admin&notice=application-deleted');
+    } catch (error) {
+      setDeleteError(`The application could not be deleted. ${error instanceof Error ? error.message : 'Please try again.'}`);
+      setDeletingApplication(false);
+    }
+  }
+
   async function saveDecision(event) {
     event.preventDefault();
     if (!supabase || !detail.application) return;
@@ -162,7 +191,7 @@ export default function AdminApplicantPage() {
             : null,
         }));
         setDecision({ status: data.status });
-        setDecisionMessage('Loan status updated successfully.');
+        setToast('Loan status updated successfully.');
       }
     } catch (error) {
       setDecisionMessage(`The loan status could not be saved. ${error instanceof Error ? error.message : 'Please try again.'}`);
@@ -226,7 +255,7 @@ export default function AdminApplicantPage() {
         matched_at: null,
         unlock_at: null,
       })).sort((first, second) => first.sequence - second.sequence));
-      setSerialMessage('All four serials were generated and saved. Authorized admins can retrieve them until reset.');
+      setToast('All four serials were generated and saved. Authorized admins can retrieve them until reset.');
     } catch (error) {
       setSerialMessage(`The four serials could not be generated. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
@@ -266,7 +295,7 @@ export default function AdminApplicantPage() {
         setting.sequence === selectedAmountSequence ? { ...setting, amount: String(data) } : setting
       )));
       setAmountInput(String(data));
-      setSerialMessage(`Amount for step ${selectedAmountSequence} saved.`);
+      setToast(`Amount for step ${selectedAmountSequence} saved.`);
     } catch (error) {
       setSerialMessage(`The amount for step ${selectedAmountSequence} could not be saved. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
@@ -303,7 +332,7 @@ export default function AdminApplicantPage() {
       })));
       setAmountSettings((current) => current.map((setting) => ({ ...setting, amount: '0' })));
       setAmountInput('0');
-      setSerialMessage('All serial codes were reset and all four amounts are now J$0.');
+      setToast('All serial codes were reset and all four amounts are now J$0.');
     } catch (error) {
       setSerialMessage(`Serials could not be reset. ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
@@ -314,7 +343,7 @@ export default function AdminApplicantPage() {
   async function copySerialCode(code) {
     try {
       await navigator.clipboard.writeText(code);
-      setSerialMessage('Serial copied to clipboard. Share it with the user.');
+      setToast('Serial copied to clipboard.');
     } catch (error) {
       setSerialMessage(`Could not copy the serial. ${error instanceof Error ? error.message : 'Please copy it manually.'}`);
     }
@@ -328,6 +357,7 @@ export default function AdminApplicantPage() {
   return (
     <>
       <a className="skip-link" href="#main">Skip to applicant details</a>
+      <Toast message={toast} onDismiss={() => setToast('')} />
       <header className="site-header dashboard-header">
         <div className="container nav-wrap">
           <a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a>
@@ -372,6 +402,13 @@ export default function AdminApplicantPage() {
                     </button>
                   </form>
                   {decisionMessage && <p className="admin-decision-message" role={decisionMessage.includes('could not') || decisionMessage.startsWith('Enter') ? 'alert' : 'status'}>{decisionMessage}</p>}
+                  <div className="admin-delete-application">
+                    <p>Delete this application and its linked transfer previews and serial checkpoints. The applicant’s account will remain.</p>
+                    <button className="button button-quiet" type="button" onClick={deleteApplication} disabled={deletingApplication}>
+                      {deletingApplication ? 'Deleting application…' : 'Delete application'}
+                    </button>
+                    {deleteError && <p className="admin-decision-message" role="alert">{deleteError}</p>}
+                  </div>
                 </section>
                 <section className="admin-detail-card">
                   <h2>Personal details</h2>

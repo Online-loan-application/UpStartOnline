@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../supabase.js';
 import { signOutWithActivity } from '../accountActivity.js';
 import brandLogo from '../brandAssets.js';
+import Toast from '../components/Toast.jsx';
 
 const pageSize = 20;
 const amountFormatter = new Intl.NumberFormat('en-JM', { maximumFractionDigits: 0 });
@@ -13,6 +14,7 @@ export default function AdminPage() {
   const [revision, setRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [toast, setToast] = useState('');
   const [dashboard, setDashboard] = useState({
     loading: true,
     authorized: false,
@@ -24,6 +26,15 @@ export default function AdminPage() {
     error: '',
     signOutError: '',
   });
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('notice') === 'application-deleted') {
+      setToast('Loan application deleted. The applicant account remains active.');
+      url.searchParams.delete('notice');
+      window.history.replaceState({}, '', url);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -130,6 +141,7 @@ export default function AdminPage() {
   return (
     <>
       <a className="skip-link" href="#main">Skip to admin dashboard</a>
+      <Toast message={toast} onDismiss={() => setToast('')} />
       <header className="site-header">
         <div className="container nav-wrap">
           <a className="brand" href="./index.html" aria-label="Upstart Jamaica home">
