@@ -32,6 +32,7 @@ export default function HomePage() {
         <a href="#options">Loan options</a>
         <a href="#approach">Our approach</a>
         <a href="./application.html">Application</a>
+        <a href="./application.html?view=account&mode=login">Sign in</a>
       </nav>
       <a className="button button-primary nav-cta" href="./application.html">Apply now</a>
       <button className="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-controls="primary-nav" aria-expanded="false">

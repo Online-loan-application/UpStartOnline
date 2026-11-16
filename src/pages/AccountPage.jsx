@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { readApplicationDraft, submitApplicationDraft } from '../applicationData.js';
+import { logAccountActivity } from '../accountActivity.js';
 import { isSupabaseConfigured, supabase } from '../supabase.js';
 import brandLogo from '../brandAssets.js';
 
@@ -13,6 +14,11 @@ export default function AccountPage() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const name = application?.firstName || 'there';
+
+  function redirectToDashboard(user) {
+    const destination = user.app_metadata?.role === 'admin' ? 'admin' : 'dashboard';
+    window.location.href = `./application.html?view=${destination}`;
+  }
 
   async function continueAfterAuthentication(user) {
     const { error } = await submitApplicationDraft(user);
@@ -70,9 +76,14 @@ export default function AccountPage() {
         setMessage(error.message);
         return;
       }
+      await logAccountActivity('signed_in', 'You signed in to your account.');
+      if (data.user.app_metadata?.role === 'admin') {
+        redirectToDashboard(data.user);
+        return;
+      }
       await continueAfterAuthentication(data.user);
-    } catch {
-      setMessage('We could not reach account services. Check your connection and try again.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'We could not reach account services. Check your connection and try again.');
     } finally {
       setBusy(false);
     }
@@ -93,7 +104,7 @@ export default function AccountPage() {
               <div className="field"><label htmlFor="account-password">Password</label><input id="account-password" type="password" autoComplete={mode === 'create' ? 'new-password' : 'current-password'} minLength="8" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 8 characters" /></div>
             </div>
             {message && <p className="account-message" role="status">{message}</p>}
-            <div className="account-actions"><button className="button button-dark" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'create' ? 'Create account' : 'Log in'}</button><button className="button button-quiet" type="button" disabled={busy} onClick={() => { setMode(mode === 'create' ? 'login' : 'create'); setMessage(''); }}> {mode === 'create' ? 'Already have an account? Log in' : 'Create a new account'} </button></div>
+            <div className="account-actions"><button className="button button-dark" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'create' ? 'Create account' : 'Log in'}</button>{mode === 'create' ? <button className="button button-quiet" type="button" disabled={busy} onClick={() => { setMode('login'); setMessage(''); }}>Already have an account? Log in</button> : <a className="button button-quiet" href="./application.html">Create an account</a>}</div>
           </form>
           <a className="account-back" href="./application.html">Return to application</a>
         </div></div></section>

@@ -1,0 +1,341 @@
+import { useEffect, useState } from 'react';
+import { isSupabaseConfigured, supabase } from '../supabase.js';
+import { signOutWithActivity } from '../accountActivity.js';
+import brandLogo from '../brandAssets.js';
+import Toast from '../components/Toast.jsx';
+
+const transferTypes = {
+  'local-bank': 'Local bank transfer',
+  'cash-app': 'Cash App',
+  paypal: 'PayPal',
+  other: 'More transfer options',
+};
+
+const amountFormatter = new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 2 });
+
+function getSerialProgress(serials, serverOffset, now) {
+  const bySequence = new Map(serials.map((serial) => [serial.sequence, serial]));
+  for (let sequence = 1; sequence <= 4; sequence += 1) {
+    const serial = bySequence.get(sequence);
+    if (!serial) return { serial: null, waiting: null, sequence, complete: false };
+    if (!serial.code_generated) {
+      return { serial: null, waiting: null, sequence, complete: false, needsCode: true };
+    }
+    if (serial.amount == null || Number(serial.amount) <= 0) {
+      return { serial: null, waiting: null, sequence, complete: false, needsAmount: true };
+    }
+    if (!serial.matched_at) return { serial, waiting: null, sequence, complete: false };
+    const remaining = Math.max(0, new Date(serial.unlock_at).getTime() - (now + serverOffset));
+    if (remaining > 0) return { serial, waiting: serial, sequence: sequence + 1, remaining, complete: false };
+  }
+  return { serial: null, waiting: null, sequence: null, complete: true };
+}
+
+function formatRemaining(milliseconds) {
+  const seconds = Math.ceil(milliseconds / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours, minutes, remainder].map((part) => String(part).padStart(2, '0')).join(':');
+}
+
+function displaySerialText(value) {
+  return value
+    .replace(/\bdemonstration\b/gi, 'simulation')
+    .replace(/\bdemo\b/gi, '')
+    .replace(/\s*\(\s*\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export default function TransferSerialPage() {
+  const [account, setAccount] = useState({ loading: true, email: '', applicationId: '', serials: [], serverOffset: 0, transfer: null, error: '' });
+  const [serial, setSerial] = useState('');
+  const [toast, setToast] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const search = new URLSearchParams(window.location.search);
+  const provider = search.get('provider') || '';
+  const transferId = search.get('transfer_id') || '';
+  const transferType = transferTypes[provider];
+
+  useEffect(() => {
+    let active = true;
+
+    async function verifyAccount() {
+      if (!isSupabaseConfigured || !supabase) {
+        setAccount((current) => ({ ...current, loading: false, error: 'Account services are not configured. Please contact support.' }));
+        return;
+      }
+
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError?.name === 'AuthSessionMissingError' || (!authError && !user)) {
+        if (active) window.location.replace('./application.html?view=account&mode=login');
+        return;
+      }
+      if (authError) throw new Error(`Your account could not be verified. ${authError.message}`);
+
+      const { data: application, error: applicationError } = await supabase
+        .from('loan_applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (applicationError) throw new Error(`Your application could not be loaded. ${applicationError.message}`);
+      if (!application) {
+        if (active) setAccount({ loading: false, email: user.email || '', applicationId: '', serials: [], serverOffset: 0, transfer: null, error: '' });
+        return;
+      }
+
+      const { data: serials, error: serialError } = await supabase.rpc('get_transfer_demo_serials', {
+        p_application_id: application.id,
+      });
+      if (serialError) {
+        throw new Error(serialError.code === '42883' || serialError.code === 'PGRST202'
+          ? 'Serials are not configured. An administrator must apply the serial setup migration in Supabase.'
+          : `Serials could not be loaded. ${serialError.message}`);
+      }
+      if (serials?.length && typeof serials[0].code_generated !== 'boolean') {
+        throw new Error('An administrator must apply the latest serial setup migration in Supabase.');
+      }
+      let transfer = null;
+      if (transferId) {
+        const { data: transferRequest, error: transferError } = await supabase
+          .from('demo_transfer_requests')
+          .select('id, provider, amount, status, created_at, processing_at')
+          .eq('id', transferId)
+          .maybeSingle();
+        if (transferError) throw new Error(`Transfer status could not be loaded. ${transferError.message}`);
+        transfer = transferRequest;
+      }
+
+      if (active) {
+        const serverNow = serials?.[0]?.server_now;
+        setAccount({
+          loading: false,
+          email: user.email || '',
+          applicationId: application.id,
+          serials: serials || [],
+          serverOffset: serverNow ? new Date(serverNow).getTime() - Date.now() : 0,
+          transfer,
+          error: '',
+        });
+      }
+    }
+
+    void verifyAccount().catch((error) => {
+      if (active) setAccount({
+        loading: false,
+        email: '',
+        applicationId: '',
+        serials: [],
+        serverOffset: 0,
+        transfer: null,
+        error: error instanceof Error ? error.message : 'Your account could not be verified. Please sign in again.',
+      });
+    });
+
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  async function refreshSerials() {
+    if (!supabase) throw new Error('Account services are not configured.');
+    const { data, error } = await supabase.rpc('get_transfer_demo_serials', {
+      p_application_id: account.applicationId,
+    });
+    if (error) throw new Error(`Serial status could not be refreshed. ${error.message}`);
+    const serverNow = data?.[0]?.server_now;
+    setAccount((current) => ({
+      ...current,
+      serials: data || [],
+      serverOffset: serverNow ? new Date(serverNow).getTime() - Date.now() : current.serverOffset,
+      error: '',
+    }));
+  }
+
+  async function signOut() {
+    if (!supabase) return;
+    try {
+      await signOutWithActivity();
+      window.location.href = './application.html?view=account&mode=login';
+    } catch (error) {
+      setAccount((current) => ({ ...current, error: error.message }));
+    }
+  }
+
+  function returnToTransferPreview() {
+    window.location.href = `./application.html?view=transfer&provider=${encodeURIComponent(provider)}`;
+  }
+
+  async function submitSerial(event) {
+    event.preventDefault();
+    if (!supabase) {
+      setAccount((current) => ({ ...current, error: 'Account services are not configured. Please contact support.' }));
+      return;
+    }
+    if (!transferId) {
+      setAccount((current) => ({ ...current, error: 'This transfer preview is missing. Return to the transfer page and create a new preview.' }));
+      return;
+    }
+    const progress = getSerialProgress(account.serials, account.serverOffset, now);
+    if (!progress.serial || progress.waiting) return;
+
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.rpc('match_demo_transfer_serial', {
+        p_serial_id: progress.serial.id,
+        p_serial_code: serial.trim(),
+        p_demo_transfer_id: transferId,
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.[0]?.code_matches) {
+        setToast('That serial does not match. Check the code with the administrator.');
+        return;
+      }
+      setSerial('');
+      await refreshSerials();
+      if (data[0].transfer_status === 'processing') {
+        setAccount((current) => ({ ...current, transfer: current.transfer ? { ...current.transfer, status: 'processing', processing_at: new Date().toISOString() } : current.transfer }));
+      }
+      setToast(progress.sequence === 1
+        ? 'Serial confirmed. The transfer amount is now in processing; no funds moved. The 30-minute timer has started.'
+        : 'Serial confirmed. The 30-minute timer has started.');
+    } catch (error) {
+      setAccount((current) => ({
+        ...current,
+        error: `The serial could not be checked. ${error instanceof Error ? error.message : 'Please try again.'}`,
+      }));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (account.loading) return <main className="container dashboard-loading" aria-live="polite">Checking your account…</main>;
+
+  const progress = getSerialProgress(account.serials, account.serverOffset, now);
+
+  return (
+    <>
+      <a className="skip-link" href="#main">Skip to transfer serial entry</a>
+      <header className="site-header dashboard-header">
+        <div className="container nav-wrap">
+          <a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a>
+          <button
+            className="dashboard-header-menu"
+            type="button"
+            aria-label={menuOpen ? 'Close dashboard navigation' : 'Open dashboard navigation'}
+            aria-controls="serial-sidebar"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <svg className="dashboard-menu-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            <svg className="dashboard-menu-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+          <nav className="dashboard-nav" aria-label="Account navigation">
+            <span className="dashboard-account-email">{account.email}</span>
+            <button className="button button-quiet" type="button" onClick={signOut}>Log out</button>
+          </nav>
+        </div>
+      </header>
+      <main id="main" className="dashboard-main">
+        <div className="dashboard-shell">
+          <aside id="serial-sidebar" className={`dashboard-sidebar${menuOpen ? ' is-open' : ''}`} aria-label="Dashboard sidebar">
+            <p className="dashboard-sidebar-label">My account</p>
+            <nav className="dashboard-sidebar-nav" aria-label="Dashboard sections">
+              <a href="./application.html?view=dashboard"><span className="sidebar-nav-icon" aria-hidden="true">⌂</span>Overview</a>
+              <a href="./application.html?view=dashboard#application"><span className="sidebar-nav-icon" aria-hidden="true">▤</span>Loan application</a>
+              <a href="./application.html?view=transfer" aria-current="page"><span className="sidebar-nav-icon" aria-hidden="true">⇄</span>Transfer</a>
+              <a href="./application.html?view=history"><span className="sidebar-nav-icon" aria-hidden="true">▧</span>History</a>
+              <a href="./application.html?view=profile"><span className="sidebar-nav-icon" aria-hidden="true">◉</span>My profile</a>
+            </nav>
+          </aside>
+          <section className="dashboard-content transfer-page-content">
+            <Toast message={toast} onDismiss={() => setToast('')} />
+            {account.error && <p className="account-message" role="alert">{account.error}</p>}
+            <button className="transfer-back-link transfer-back-button" type="button" onClick={returnToTransferPreview}>← Back to transfer details</button>
+            {transferType && (
+              <article className="transfer-serial-card">
+                <span className="transfer-demo-banner">Proceed with transfer</span>
+                <p className="dashboard-panel-kicker">{transferType} · Serial checkpoints</p>
+                <h1>Transfer verification</h1>
+                <p className="transfer-detail-description">Only the current step is shown. Each confirmed step starts a 30-minute wait before the next one is revealed.</p>
+                {!transferId && <p className="account-message" role="alert">This transfer preview is missing. Return to the transfer page and create a new preview before entering a serial.</p>}
+                {account.transfer?.status === 'processing' && (
+                  <p className="account-notice" role="status">
+                    <strong>Transfer in processing</strong>
+                    <span>{amountFormatter.format(Number(account.transfer.amount))} has been reserved from the available balance. This is a simulation only; no real funds moved.</span>
+                  </p>
+                )}
+                {account.applicationId ? (
+                  account.serials.length === 0 ? (
+                    <p className="account-notice" role="status"><strong>No serials are ready</strong><span>Ask your administrator to create the four serials for your application.</span></p>
+                  ) : (
+                    <div className="transfer-demo-steps">
+                      {progress.complete ? (
+                        <p className="transfer-demo-complete" role="status">All four steps are complete. The transfer remains in processing; no payment was submitted and no funds moved.</p>
+                      ) : (
+                        (() => {
+                          const sequence = progress.waiting?.sequence || progress.sequence || 1;
+                          const item = account.serials.find((candidate) => candidate.sequence === sequence);
+                          const isWaiting = progress.waiting?.sequence === sequence;
+                          const isActive = progress.sequence === sequence && progress.serial?.sequence === sequence;
+                          return (
+                            <section className={`transfer-demo-step${isActive ? ' is-active' : ''}${isWaiting ? ' is-waiting' : ''}`} key={sequence}>
+                              {isWaiting && progress.remaining > 0 ? (
+                                <div className="transfer-demo-timer" role="timer" aria-label="Time remaining until next step">
+                                  <span>Next step unlocks in</span><strong key={formatRemaining(progress.remaining)}>{formatRemaining(progress.remaining)}</strong>
+                                </div>
+                              ) : item ? (
+                                <>
+                                  <h2>{displaySerialText(item.name)}</h2>
+                                  <p>{displaySerialText(item.description)}</p>
+                                  <dl>
+                                    <div><dt>Reason</dt><dd>{displaySerialText(item.reason)}</dd></div>
+                                    <div><dt>Amount</dt><dd>{item.amount == null || Number(item.amount) <= 0 ? 'Not set by admin' : amountFormatter.format(Number(item.amount))}</dd></div>
+                                  </dl>
+                                  {isActive && (
+                                    <form className="transfer-form" onSubmit={submitSerial}>
+                                      <label className="transfer-form-field" htmlFor={`transfer-serial-${sequence}`}><span>Enter serial {sequence}</span>
+                                        <input
+                                          id={`transfer-serial-${sequence}`}
+                                          type="text"
+                                          autoComplete="off"
+                                          minLength="12"
+                                          maxLength="12"
+                                          pattern="[A-Za-z0-9]{12}"
+                                          title="Enter the 12-letter or number code provided by your administrator."
+                                          required
+                                          value={serial}
+                                          onChange={(event) => setSerial(event.target.value.toUpperCase())}
+                                        />
+                                      </label>
+                                      <button className="button button-dark" type="submit" disabled={submitting}>{submitting ? 'Checking…' : 'Confirm serial'}</button>
+                                    </form>
+                                  )}
+                                </>
+                              ) : <p className="transfer-demo-missing">{progress.needsCode ? 'The administrator must generate a new serial before you can continue.' : progress.needsAmount ? 'The administrator must set this amount before you can enter the serial.' : 'This step has not been configured by the administrator.'}</p>}
+                            </section>
+                          );
+                        })()
+                      )}
+                    </div>
+                  )
+                ) : <p className="account-notice" role="status"><strong>No loan application found</strong><span>Serial steps are attached to a loan application.</span></p>}
+                <p className="transfer-safety-note">Simulation only: serials and amount tags do not authorize a payment, charge a fee, or move money. The countdown is part of this simulation.</p>
+              </article>
+            )}
+          </section>
+        </div>
+      </main>
+      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">SIMULATION ONLY · No funds move.</p></div></footer>
+    </>
+  );
+}
