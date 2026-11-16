@@ -520,7 +520,7 @@ export default function TransferPage() {
           </section>
         </div>
       </main>
-      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Transfer services are not currently available.</p></div></footer>
+      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Transfers will be submitted as processing.</p></div></footer>
     </>
   );
 }
