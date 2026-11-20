@@ -98,6 +98,7 @@ export default function TransferPage() {
       let serialSetupError = '';
       let recipientRows = [];
       let processingBalance = 0;
+      let sentBalance = 0;
       let activeProcessingTransfer = null;
       if (application) {
         const { data: demoSerials, error: serialError } = await supabase.rpc('get_transfer_demo_serials', {
@@ -124,6 +125,7 @@ export default function TransferPage() {
           throw new Error(`Processing transfers could not be loaded. ${totalsError.message}`);
         }
         processingBalance = Number(totals?.[0]?.processing_amount) || 0;
+        sentBalance = Number(totals?.[0]?.sent_amount) || 0;
 
         const { data: activeTransfer, error: activeTransferError } = await supabase
           .from('demo_transfer_requests')
@@ -158,7 +160,7 @@ export default function TransferPage() {
         setApplicationId(application?.id || '');
         setProcessingAmount(processingBalance);
         setProcessingTransfer(activeProcessingTransfer);
-        setAvailableBalance(application?.status === 'approved' ? Math.max(0, (Number(application.amount) || 0) - processingBalance) : 0);
+        setAvailableBalance(application?.status === 'approved' ? Math.max(0, (Number(application.amount) || 0) - processingBalance - sentBalance) : 0);
         setSavedRecipients(recipientRows);
         setFirstSerialState({ ready: firstSerialReady, error: serialSetupError });
         setLoading(false);
@@ -496,7 +498,7 @@ export default function TransferPage() {
                       </div>
                     )}
                     {formError && <p className="account-message" role="alert">{formError}</p>}
-                    <p className="transfer-safety-note">Recipient details are saved to your account for reuse only when you choose “Save recipient details.” Preview details are not stored with the transfer.</p>
+                    <p className="transfer-safety-note">Recipient details are saved with this transfer for its confirmation and history. They are saved for reuse only when you choose “Save recipient details.” No real funds move.</p>
                     <button className="button button-dark" type="submit" disabled={previewSaving}>{previewSaving ? 'Preparing preview…' : 'Preview transfer'}</button>
                   </form>
                 </article>
@@ -520,7 +522,7 @@ export default function TransferPage() {
           </section>
         </div>
       </main>
-      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Transfers will be submitted as processing.</p></div></footer>
+      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Transfers are for display only; no real funds move.</p></div></footer>
     </>
   );
 }

@@ -6,14 +6,17 @@ import brandLogo from '../brandAssets.js';
 const formatter = new Intl.NumberFormat('en-JM', { maximumFractionDigits: 0 });
 const currency = (amount) => `J$${formatter.format(Number(amount) || 0)}`;
 const activitySummary = (summary) => summary
-  .replace(/\bdemonstration\b/gi, 'simulation')
+  .replace(/\bdemonstration\b/gi, '')
   .replace(/\bdemo\b/gi, '')
+  .replace(/\bsimulat(?:ed|ion(?:-only)?)\b/gi, '')
+    .replace(/\b(?:no\s+real\s+fund(?:s)\s+moved)\b/gi, '')
+  .replace(/\b(?:no\s+fund(?:s)\s+moved)\b/gi, '')
   .replace(/\s+/g, ' ')
   .replace(/\s+([.,;:!?])/g, '$1')
   .trim();
 
 export default function DashboardPage() {
-  const [dashboard, setDashboard] = useState({ loading: true, email: '', application: null, activities: [], processingAmount: 0, processingCount: 0, processingTransfers: [], error: '' });
+  const [dashboard, setDashboard] = useState({ loading: true, email: '', application: null, activities: [], processingAmount: 0, processingCount: 0, sentAmount: 0, processingTransfers: [], error: '' });
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -41,6 +44,7 @@ export default function DashboardPage() {
         .limit(30);
       let processingAmount = 0;
       let processingCount = 0;
+      let sentAmount = 0;
       let processingError = null;
       let processingTransfers = [];
       let processingTransfersError = null;
@@ -51,6 +55,7 @@ export default function DashboardPage() {
         processingError = totalsError;
         processingAmount = Number(totals?.[0]?.processing_amount) || 0;
         processingCount = Number(totals?.[0]?.processing_count) || 0;
+        sentAmount = Number(totals?.[0]?.sent_amount) || 0;
         const { data: transfers, error: transfersError } = await supabase
           .from('demo_transfer_requests')
           .select('id, provider, amount, processing_at')
@@ -72,6 +77,7 @@ export default function DashboardPage() {
           activities: activities || [],
           processingAmount,
           processingCount,
+          sentAmount,
           processingTransfers,
           error: applicationError,
         });
@@ -110,7 +116,7 @@ export default function DashboardPage() {
 
   const amount = Number(application?.amount) || 0;
   const grossBalance = application?.status === 'approved' ? amount : 0;
-  const balance = Math.max(0, grossBalance - dashboard.processingAmount);
+  const balance = Math.max(0, grossBalance - dashboard.processingAmount - dashboard.sentAmount);
   const activeTransfer = dashboard.processingTransfers[0];
   const activeTransferHref = activeTransfer
     ? `./application.html?view=transfer-serial&provider=${encodeURIComponent(activeTransfer.provider)}&transfer_id=${encodeURIComponent(activeTransfer.id)}`
@@ -213,6 +219,7 @@ export default function DashboardPage() {
                   <h2 id="balance-title">{currency(balance)}</h2>
                   <p>{status === 'approved' ? 'Available balance' : 'Your balance will update if your application is approved.'}</p>
                   {dashboard.processingAmount > 0 && <p className="dashboard-processing-balance">{currency(dashboard.processingAmount)} in processing transfers ({dashboard.processingCount})</p>}
+                  {dashboard.sentAmount > 0 && <p className="dashboard-processing-balance">{currency(dashboard.sentAmount)} in sent transfers</p>}
                   {dashboard.processingTransfers.length > 0 && (
                     <ul className="dashboard-processing-transfer-list" aria-label="Transfers in processing">
                       {dashboard.processingTransfers.map((transfer) => (

@@ -32,11 +32,21 @@ create table if not exists public.account_activity (
   event_type text not null check (event_type in (
     'account_created', 'signed_in', 'signed_out', 'application_submitted',
     'application_status_changed', 'recipient_saved', 'recipient_deleted', 'transfer_previewed', 'transfer_processing',
-    'transfer_checkpoint_matched', 'transfer_checkpoint_failed'
+    'transfer_checkpoint_matched', 'transfer_checkpoint_failed', 'transfer_sent'
   )),
   summary text not null check (length(trim(summary)) between 1 and 500),
   created_at timestamptz not null default now()
 );
+
+alter table public.account_activity
+  drop constraint if exists account_activity_event_type_check;
+alter table public.account_activity
+  add constraint account_activity_event_type_check
+  check (event_type in (
+    'account_created', 'signed_in', 'signed_out', 'application_submitted',
+    'application_status_changed', 'recipient_saved', 'recipient_deleted', 'transfer_previewed', 'transfer_processing',
+    'transfer_checkpoint_matched', 'transfer_checkpoint_failed', 'transfer_sent'
+  ));
 
 create index if not exists account_activity_user_created_idx
   on public.account_activity (user_id, created_at desc);
@@ -124,10 +134,28 @@ create table if not exists public.demo_transfer_requests (
   application_id uuid not null references public.loan_applications (id) on delete cascade,
   provider text not null check (provider in ('local-bank', 'cash-app', 'paypal', 'other')),
   amount numeric(12, 2) not null check (amount > 0),
-  status text not null default 'preview' check (status in ('preview', 'processing')),
+  status text not null default 'preview' check (status in ('preview', 'processing', 'sent')),
   created_at timestamptz not null default now(),
-  processing_at timestamptz
+  processing_at timestamptz,
+  recipient_details jsonb,
+  reference_code text,
+  sent_at timestamptz
 );
+
+alter table public.demo_transfer_requests
+  add column if not exists recipient_details jsonb,
+  add column if not exists reference_code text,
+  add column if not exists sent_at timestamptz;
+
+alter table public.demo_transfer_requests
+  drop constraint if exists demo_transfer_requests_status_check;
+alter table public.demo_transfer_requests
+  add constraint demo_transfer_requests_status_check
+  check (status in ('preview', 'processing', 'sent'));
+
+create unique index if not exists demo_transfer_requests_reference_code_idx
+  on public.demo_transfer_requests (reference_code)
+  where reference_code is not null;
 
 do $$
 begin
@@ -227,13 +255,13 @@ begin
       from public.demo_transfer_requests as request
       where request.application_id = p_application_id
         and request.user_id = auth.uid()
-        and request.status = 'processing'
+        and request.status in ('processing', 'sent')
   ), 0) then
     raise exception 'The demo transfer amount exceeds the available balance.';
   end if;
 
-  insert into public.demo_transfer_requests (user_id, application_id, provider, amount)
-  values (auth.uid(), p_application_id, p_provider, p_amount)
+  insert into public.demo_transfer_requests (user_id, application_id, provider, amount, recipient_details)
+  values (auth.uid(), p_application_id, p_provider, p_amount, p_recipient_details)
   returning id into transfer_id;
 
   insert into public.account_activity (user_id, event_type, summary)
@@ -247,8 +275,9 @@ begin
 end;
 $$;
 
-create or replace function public.get_demo_transfer_totals(p_application_id uuid)
-returns table (processing_amount numeric, processing_count bigint)
+drop function if exists public.get_demo_transfer_totals(uuid);
+create function public.get_demo_transfer_totals(p_application_id uuid)
+returns table (processing_amount numeric, processing_count bigint, sent_amount numeric)
 language plpgsql
 stable
 security definer
@@ -265,11 +294,14 @@ begin
   end if;
 
   return query
-    select coalesce(sum(request.amount), 0)::numeric, count(*)::bigint
+    select
+      coalesce(sum(request.amount) filter (where request.status = 'processing'), 0)::numeric,
+      count(*) filter (where request.status = 'processing')::bigint,
+      coalesce(sum(request.amount) filter (where request.status = 'sent'), 0)::numeric
       from public.demo_transfer_requests as request
       where request.application_id = p_application_id
         and request.user_id = auth.uid()
-        and request.status = 'processing';
+        and request.status in ('processing', 'sent');
 end;
 $$;
 
@@ -372,7 +404,7 @@ begin
         from public.demo_transfer_requests as request
         where request.application_id = target_transfer.application_id
           and request.user_id = auth.uid()
-          and request.status = 'processing'
+          and request.status in ('processing', 'sent')
     ), 0) then
       raise exception 'The demo transfer amount now exceeds the available balance.';
     end if;

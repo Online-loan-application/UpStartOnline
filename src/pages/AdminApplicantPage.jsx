@@ -242,7 +242,7 @@ export default function AdminApplicantPage() {
             ? 'Transaction Reference Code (TRC)'
             : `Serial ${generated.stage_sequence}`,
         description: generated.stage_sequence === 1
-          ? "This confirms that a payment has passed the required authorization checks. The serial code is generally generated through the support and is to be purchased for the completion of your transfer."
+          ? 'Simulation-only authorization checkpoint. No fee or payment is required to receive or enter a demo code. Real banks do not ask customers to purchase verification codes.'
           : generated.stage_sequence === 2
             ? 'Simulation-only verification step. No fee or payment is required to receive or enter a verification code. Real banks do not ask customers to purchase verification codes. If you have concerns about an actual charge, contact your bank through its official support channels.'
             : generated.stage_sequence === 3

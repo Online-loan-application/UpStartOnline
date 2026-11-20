@@ -5,8 +5,11 @@ import brandLogo from '../brandAssets.js';
 
 const currency = new Intl.NumberFormat('en-JM', { style: 'currency', currency: 'JMD', maximumFractionDigits: 0 });
 const activitySummary = (summary) => summary
-  .replace(/\bdemonstration\b/gi, 'simulation')
+  .replace(/\bdemonstration\b/gi, '')
   .replace(/\bdemo\b/gi, '')
+  .replace(/\bsimulat(?:ed|ion(?:-only)?)\b/gi, '')
+  .replace(/\b(?:no\s+real\s+fund(?:s)\s+moved)\b/gi, '')
+  .replace(/\b(?:no\s+fund(?:s)\s+moved)\b/gi, '')
   .replace(/\s+/g, ' ')
   .replace(/\s+([.,;:!?])/g, '$1')
   .trim();
@@ -37,7 +40,7 @@ export default function HistoryPage() {
 
       const { data: transfers, error: transferError } = await supabase
         .from('demo_transfer_requests')
-        .select('id, provider, amount, status, created_at, processing_at')
+        .select('id, provider, amount, status, created_at, processing_at, sent_at, reference_code')
         .order('created_at', { ascending: false });
 
       if (active) {
@@ -116,11 +119,11 @@ export default function HistoryPage() {
           </aside>
           <section className="dashboard-content dashboard-history">
             <div className="dashboard-page-heading">
-              <div><p className="dashboard-panel-kicker">Account activity</p><h1>History</h1><p>Review sign-ins, application updates, and simulated transfer activity.</p></div>
+              <div><p className="dashboard-panel-kicker">Account activity</p><h1>History</h1><p>Review sign-ins, application updates, and transfer activity.</p></div>
             </div>
             {history.error && <p className="account-message" role="alert">We couldn’t load your history: {history.error}</p>}
             <div className="history-card">
-              <p className="history-disclaimer">Transfer entries are simulated records only. No real funds have moved.</p>
+              <p className="history-disclaimer">Transfer entries are records only; no real funds moved.</p>
               <h2 className="history-section-title">Account activity</h2>
               {history.events.length ? (
                 <ol className="history-list">
@@ -137,8 +140,8 @@ export default function HistoryPage() {
                 <ol className="history-list">
                   {history.transfers.map((transfer) => (
                     <li className="history-entry" key={transfer.id}>
-                      <div className="history-entry-heading"><div><h2>{transfer.provider.replaceAll('-', ' ')} transfer</h2><p>{currency.format(Number(transfer.amount) || 0)} · {transfer.status}</p></div><span className="history-status">{transfer.status}</span></div>
-                      <time dateTime={transfer.processing_at || transfer.created_at}>{new Intl.DateTimeFormat('en-JM', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(transfer.processing_at || transfer.created_at))}</time>
+                      <div className="history-entry-heading"><div><h2>{transfer.provider.replaceAll('-', ' ')} transfer</h2><p>{currency.format(Number(transfer.amount) || 0)} · {transfer.status}{transfer.reference_code ? ` · Ref: ${transfer.reference_code}` : ''}</p></div><span className="history-status">{transfer.status}</span></div>
+                      <time dateTime={transfer.sent_at || transfer.processing_at || transfer.created_at}>{new Intl.DateTimeFormat('en-JM', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(transfer.sent_at || transfer.processing_at || transfer.created_at))}</time>
                     </li>
                   ))}
                 </ol>

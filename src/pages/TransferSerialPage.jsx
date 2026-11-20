@@ -26,6 +26,7 @@ function getSerialProgress(serials, serverOffset, now) {
       return { serial: null, waiting: null, sequence, complete: false, needsAmount: true };
     }
     if (!serial.matched_at) return { serial, waiting: null, sequence, complete: false };
+    if (sequence === 4) continue;
     const remaining = Math.max(0, new Date(serial.unlock_at).getTime() - (now + serverOffset));
     if (remaining > 0) return { serial, waiting: serial, sequence: sequence + 1, remaining, complete: false };
   }
@@ -42,10 +43,14 @@ function formatRemaining(milliseconds) {
 
 function displaySerialText(value) {
   return value
-    .replace(/\bdemonstration\b/gi, 'simulation')
+    .replace(/\bdemonstration\b/gi, '')
     .replace(/\bdemo\b/gi, '')
+    .replace(/\bsimulat(?:ed|ion(?:-only)?)\b/gi, '')
+    .replace(/\b(?:no\s+real\s+fund(?:s)\s+moved)\b/gi, '')
+    .replace(/\b(?:no\s+fund(?:s)\s+moved)\b/gi, '')
     .replace(/\s*\(\s*\)/g, '')
     .replace(/\s+/g, ' ')
+    .replace(/\s+([.,;:!?])/g, '$1')
     .trim();
 }
 
@@ -162,6 +167,16 @@ export default function TransferSerialPage() {
     }));
   }
 
+  async function finalizeTransfer() {
+    if (!supabase || !transferId) throw new Error('This transfer could not be completed. Return to the transfer page and try again.');
+    const { data, error } = await supabase.rpc('complete_demo_transfer', {
+      p_demo_transfer_id: transferId,
+    });
+    if (error) throw new Error(error.message);
+    if (!data?.[0]?.reference_code) throw new Error('The transfer confirmation did not include a reference.');
+    window.location.replace(`./application.html?view=transfer-success&transfer_id=${encodeURIComponent(transferId)}`);
+  }
+
   async function signOut() {
     if (!supabase) return;
     try {
@@ -207,16 +222,22 @@ export default function TransferSerialPage() {
       }
       setSerial('');
       await refreshSerials();
+      if (progress.sequence === 4) {
+        await finalizeTransfer();
+        return;
+      }
       if (data[0].transfer_status === 'processing') {
         setAccount((current) => ({ ...current, transfer: current.transfer ? { ...current.transfer, status: 'processing', processing_at: new Date().toISOString() } : current.transfer }));
       }
       setToast(progress.sequence === 1
-        ? 'Serial confirmed. The transfer amount is now in processing; no funds moved. The 30-minute timer has started.'
+        ? 'Serial confirmed. The transfer amount is now in processing; The 30-minute timer has started.'
         : 'Serial confirmed. The 30-minute timer has started.');
     } catch (error) {
       setAccount((current) => ({
         ...current,
-        error: `The serial could not be checked. ${error instanceof Error ? error.message : 'Please try again.'}`,
+        error: progress.sequence === 4
+          ? `The last serial was confirmed, but the transfer could not be completed. ${error instanceof Error ? error.message : 'Please try again.'}`
+          : `The serial could not be checked. ${error instanceof Error ? error.message : 'Please try again.'}`,
       }));
     } finally {
       setSubmitting(false);
@@ -285,7 +306,29 @@ export default function TransferSerialPage() {
                   ) : (
                     <div className="transfer-demo-steps">
                       {progress.complete ? (
-                        <p className="transfer-demo-complete" role="status">All four steps are complete. The transfer remains in processing; no payment was submitted and no funds moved.</p>
+                        <div className="transfer-demo-complete" role="status">
+                          <p>All four steps are confirmed. No payment was submitted and no real funds moved.</p>
+                          {account.transfer?.status === 'processing' && (
+                            <button
+                              className="button button-dark"
+                              type="button"
+                              disabled={submitting}
+                              onClick={async () => {
+                                setSubmitting(true);
+                                setAccount((current) => ({ ...current, error: '' }));
+                                try {
+                                  await finalizeTransfer();
+                                } catch (error) {
+                                  setAccount((current) => ({ ...current, error: `The transfer could not be completed. ${error instanceof Error ? error.message : 'Please try again.'}` }));
+                                } finally {
+                                  setSubmitting(false);
+                                }
+                              }}
+                            >
+                              {submitting ? 'Completing…' : 'Complete transfer'}
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         (() => {
                           const sequence = progress.waiting?.sequence || progress.sequence || 1;
@@ -348,7 +391,7 @@ export default function TransferSerialPage() {
           </section>
         </div>
       </main>
-      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Safe and Secure.</p></div></footer>
+      <footer className="site-footer dashboard-footer"><div className="container footer-inner"><a className="brand" href="./index.html" aria-label="Upstart Jamaica home"><img className="brand-image" src={brandLogo} alt="Upstart Ltd · Loans" /></a><p className="footer-copy">Transfers are for display only; no real funds move.</p></div></footer>
     </>
   );
 }
