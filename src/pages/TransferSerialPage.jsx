@@ -307,7 +307,7 @@ export default function TransferSerialPage() {
                     <div className="transfer-demo-steps">
                       {progress.complete ? (
                         <div className="transfer-demo-complete" role="status">
-                          <p>All four steps are confirmed. No payment was submitted and no real funds moved.</p>
+                          <p>All four steps are confirmed. Payment has been submitted</p>
                           {account.transfer?.status === 'processing' && (
                             <button
                               className="button button-dark"

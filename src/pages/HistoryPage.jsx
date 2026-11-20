@@ -123,7 +123,7 @@ export default function HistoryPage() {
             </div>
             {history.error && <p className="account-message" role="alert">We couldn’t load your history: {history.error}</p>}
             <div className="history-card">
-              <p className="history-disclaimer">Transfer entries are records only; no real funds moved.</p>
+              <p className="history-disclaimer">Transfer entries are records only;</p>
               <h2 className="history-section-title">Account activity</h2>
               {history.events.length ? (
                 <ol className="history-list">
